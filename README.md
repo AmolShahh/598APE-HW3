@@ -3,10 +3,15 @@
 The code runs properly on the course VMs. Please use the following commit hashes to validate the runtimes listed and remember to `make clean && make` between runs.
 
 Baseline: fc4f9a1d76fed9d5716d5bf6b7418ab829b00add
+
 Optimization 1 - Compiler Flags: c150f8edfb894d81660bdb2e5a0ec4fe61d6324d
+
 Optimization 2 - Localized Energy Calculations: 682c1713e8f35b1071f0aa015e30aafac21d63a2
+
 Optimization 3 - Optimize RNG: cb2270b4a41c0ab855666669ff8aa1d6741ec969
+
 Optimization 4 - Cache Exponentiation: e44c6cdf964b5856f4a11ff6640044444511d595
+
 
 # 598APE-HW3
 
