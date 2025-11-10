@@ -75,16 +75,14 @@ double calculateLocalEnergy(int i, int j) {
   int left  = lattice[i][(j - 1 + L) % L];
   int right = lattice[i][(j + 1) % L];
   
-  return -J * spin * (up + down + left + right);
+  return 2 * J * spin * (up + down + left + right);
 }
 void metropolisHastingsStep() {
   int i = (int)(randomDouble() * L);
   int j = (int)(randomDouble() * L);
 
-  double E_before = calculateLocalEnergy(i, j);
   lattice[i][j] *= -1;
-  double E_after = calculateLocalEnergy(i, j);
-  double dE = E_after - E_before;
+  double dE = calculateLocalEnergy(i, j);
 
   if (dE <= 0.0) {
     return;
