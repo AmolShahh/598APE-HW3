@@ -3,26 +3,54 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/time.h>
+#include <cstdint>
 
 float tdiff(struct timeval *start, struct timeval *end) {
   return (end->tv_sec - start->tv_sec) + 1e-6 * (end->tv_usec - start->tv_usec);
 }
 
-unsigned long long seed = 100;
 
-unsigned long long randomU64() {
-  seed ^= (seed << 21);
-  seed ^= (seed >> 35);
-  seed ^= (seed << 4);
-  return seed;
+
+uint64_t s[4];
+
+static inline uint64_t rotl(const uint64_t x, int k) {
+  return (x << k) | (x >> (64 - k));
+}
+
+// unsigned long long seed = 100;
+
+static uint64_t splitmix64(uint64_t *state) {
+  uint64_t z = (*state += 0x9e3779b97f4a7c15ULL);
+  z = (z ^ (z >> 30)) * 0xbf58476d1ce4e5b9ULL;
+  z = (z ^ (z >> 27)) * 0x94d049bb133111ebULL;
+  return z ^ (z >> 31);
+}
+
+void initRNG(uint64_t seed) {
+  uint64_t sm_state = seed;
+  s[0] = splitmix64(&sm_state);
+  s[1] = splitmix64(&sm_state);
+  s[2] = splitmix64(&sm_state);
+  s[3] = splitmix64(&sm_state);
+}
+
+uint64_t randomU64() {
+  const uint64_t result = rotl(s[0] + s[3], 23) + s[0];
+  const uint64_t t = s[1] << 17;
+  
+  s[2] ^= s[0];
+  s[3] ^= s[1];
+  s[1] ^= s[2];
+  s[0] ^= s[3];
+  s[2] ^= t;
+  s[3] = rotl(s[3], 45);
+  
+  return result;
 }
 
 double randomDouble() {
-  unsigned long long next = randomU64();
-  next >>= (64 - 26);
-  unsigned long long next2 = randomU64();
-  next2 >>= (64 - 26);
-  return ((next << 27) + next2) / (double)(1LL << 53);
+  uint64_t x = randomU64();
+  return (x >> 11) * 0x1.0p-53;
 }
 
 int L;          // Lattice size (L x L)
@@ -87,7 +115,6 @@ void metropolisHastingsStep() {
   if (dE <= 0.0) {
     return;
   }
-
   double prob = exp(-dE / T);
   if (randomDouble() >= prob) {
     lattice[i][j] *= -1;
@@ -187,6 +214,7 @@ int main(int argc, const char **argv) {
     printf("Critical temperature: Tc = 2J/ln(1+√2) ≈ 2.26918531421\n");
     return 1;
   }
+  initRNG(100); // for xoshiro init
 
   L = atoi(argv[1]);
   T = atof(argv[2]);
