@@ -68,13 +68,22 @@ double calculateMagnetization() {
   return mag / (L * L);
 }
 
+double calculateLocalEnergy(int i, int j) {
+  int spin = lattice[i][j];
+  int up    = lattice[(i - 1 + L) % L][j];
+  int down  = lattice[(i + 1) % L][j];
+  int left  = lattice[i][(j - 1 + L) % L];
+  int right = lattice[i][(j + 1) % L];
+  
+  return -J * spin * (up + down + left + right);
+}
 void metropolisHastingsStep() {
   int i = (int)(randomDouble() * L);
   int j = (int)(randomDouble() * L);
 
-  double E_before = calculateTotalEnergy();
+  double E_before = calculateLocalEnergy(i, j);
   lattice[i][j] *= -1;
-  double E_after = calculateTotalEnergy();
+  double E_after = calculateLocalEnergy(i, j);
   double dE = E_after - E_before;
 
   if (dE <= 0.0) {
