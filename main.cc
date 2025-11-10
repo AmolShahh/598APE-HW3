@@ -10,7 +10,6 @@ float tdiff(struct timeval *start, struct timeval *end) {
 }
 
 
-
 uint64_t s[4];
 
 static inline uint64_t rotl(const uint64_t x, int k) {
@@ -57,6 +56,16 @@ int L;          // Lattice size (L x L)
 double T;       // Temperature
 double J = 1.0; // Coupling constant
 int **lattice;
+
+double expCache[9];
+
+void initializeCache() {
+  for (int i = -4; i <= 4; i++) {
+    int idx = i + 4;
+    double dE = 2.0 * J * i;
+    expCache[idx] = exp(-dE / T);
+  }
+}
 
 void initializeLattice() {
   lattice = (int **)malloc(sizeof(int *) * L);
@@ -115,7 +124,7 @@ void metropolisHastingsStep() {
   if (dE <= 0.0) {
     return;
   }
-  double prob = exp(-dE / T);
+  double prob = expCache[(int)dE+4];
   if (randomDouble() >= prob) {
     lattice[i][j] *= -1;
   }
@@ -229,6 +238,8 @@ int main(int argc, const char **argv) {
   printf("=================================================\n\n");
 
   initializeLattice();
+
+  initializeCache();
 
   double initial_energy = calculateTotalEnergy();
   double initial_mag = calculateMagnetization();
